@@ -42,7 +42,7 @@ def index():
     try:
         # 取得所有 50嵐 與 Macu 的品項供點餐使用
         items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
-        items_macu = MenuItem.query.filter_by(brand='Macu').all()
+        items_macu = MenuItem.query.filter_by(brand='麻古茶坊').all()
     except Exception as e:
         items_50lan = []
         items_macu = []
