@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'fifty_lan_secret_key'
+app.secret_key = 'general_order_secret_key'
 
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
@@ -33,10 +33,11 @@ class OrderRecord(db.Model):
 @app.route('/')
 def index():
     try:
+        # 直接抓取所有品項，不特別分類品牌
         menu_data = MenuItem.query.all()
         all_orders = OrderRecord.query.all()
     except Exception as e:
-        print(f"資料庫連線或查詢錯誤: {e}")
+        print(f"資料庫查詢錯誤: {e}")
         menu_data = []
         all_orders = []
     
