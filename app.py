@@ -1,20 +1,22 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = 'fifty_lan_secret_key'
 
-# 讀取環境變數中的資料庫網址
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise RuntimeError("錯誤：尚未設定 DATABASE_URL 環境變數！")
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///orders.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ==================== 資料庫模型定義 ====================
 class MenuItem(db.Model):
     __tablename__ = 'menu_items'
     id = db.Column(db.Integer, primary_key=True)
@@ -28,35 +30,40 @@ class OrderRecord(db.Model):
     item_name = db.Column(db.String(100), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
 
-# ==================== 路由與視圖函式 ====================
 @app.route('/')
 def index():
-    items_50lan = []
-    items_macu = []
     try:
-        # 品牌名稱改為「50嵐」與「麻古茶坊」
-        items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
-        items_macu = MenuItem.query.filter_by(brand='麻古茶坊').all()
+        menu_data = MenuItem.query.all()
+        all_orders = OrderRecord.query.all()
     except Exception as e:
-        print(f"資料庫查詢錯誤: {e}")
+        print(f"資料庫連線或查詢錯誤: {e}")
+        menu_data = []
+        all_orders = []
     
-    return render_template('index.html', items_50lan=items_50lan, items_macu=items_macu)
+    return render_template('index.html', menu=menu_data, orders=all_orders)
 
-@app.route('/add_order', methods=['POST'])
-def add_order():
-    brand = request.form.get('brand')
-    item_name = request.form.get('item_name')
-    qty = request.form.get('qty', type=int)
+@app.route('/add', methods=['POST'])
+def add_to_cart():
+    item_id = request.form.get('item_id')
+    qty = int(request.form.get('qty', 1))
+    
+    selected_item = MenuItem.query.get(item_id)
+    
+    if selected_item:
+        new_order = OrderRecord(
+            brand=selected_item.brand,
+            item_name=selected_item.name,
+            qty=qty
+        )
+        db.session.add(new_order)
+        db.session.commit()
+        
+    return redirect(url_for('index'))
 
-    if brand and item_name and qty:
-        try:
-            new_order = OrderRecord(brand=brand, item_name=item_name, qty=qty)
-            db.session.add(new_order)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            print(f"新增訂單錯誤: {e}")
-
+@app.route('/clear', methods=['POST'])
+def clear_history():
+    OrderRecord.query.delete()
+    db.session.commit()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':

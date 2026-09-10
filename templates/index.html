@@ -2,46 +2,67 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>手搖飲線上點餐系統 (50嵐 & Macu)</title>
+    <title>雲端點餐系統</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        .brand-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 6px; }
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        .container { display: flex; gap: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 45%; }
+        h2 { color: #007660; }
         label { display: block; margin-top: 10px; font-weight: bold; }
-        select, input[type="number"], button { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        select, input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { background-color: #007660; color: white; border: none; padding: 10px; width: 100%; margin-top: 15px; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        button:hover { background-color: #005c4b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #007660; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🥤 手搖飲快速點餐系統</h1>
+    <h1>🥤 雲端點餐系統 (50嵐 & 麻古茶坊)</h1>
 
-    <!-- 點餐表單 -->
-    <form action="/add_order" method="POST">
-        
-        <div class="brand-section">
-            <h3>選擇品牌與品項</h3>
-            
-            <label for="brand">選擇品牌：</label>
-            <select name="brand" id="brand" required>
-                <option value="50嵐">50嵐</option>
-                <option value="麻古茶坊">麻古茶坊</option>
-            </select>
+    <div class="container">
+        <div class="card">
+            <h2>點餐選擇</h2>
+            <form action="/add" method="POST">
+                <label>選擇品項：</label>
+                <select name="item_id" required>
+                    {% for item in menu %}
+                        <option value="{{ item.id }}">
+                            [{{ item.brand }}] {{ item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-            <label for="item_name">飲料名稱：</label>
-            <input type="text" name="item_name" id="item_name" placeholder="例如：珍珠奶茶 / 楊枝甘露" required>
+                <label>數量：</label>
+                <input type="number" name="qty" value="1" min="1" required>
 
-            <label for="qty">數量：</label>
-            <input type="number" name="qty" id="qty" value="1" min="1" required>
-
-            <button type="submit">送出訂單</button>
+                <button type="submit">加入訂單並寫入雲端資料庫</button>
+            </form>
         </div>
 
-    </form>
-</div>
+        <div class="card" style="width: 50%;">
+            <h2>雲端歷史訂單履歷</h2>
+            <table>
+                <tr>
+                    <th>品牌</th>
+                    <th>品項</th>
+                    <th>數量</th>
+                </tr>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.brand }}</td>
+                    <td>{{ order.item_name }}</td>
+                    <td>{{ order.qty }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            
+            <form action="/clear" method="POST" style="margin-top: 15px;">
+                <button type="submit" style="background-color: #d9534f;">清空歷史紀錄</button>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>
