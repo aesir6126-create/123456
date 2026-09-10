@@ -1,86 +1,92 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>50嵐線上點餐系統</title>
+    <title>雲端點餐系統</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #006633; }
-        .row { display: flex; gap: 20px; }
-        .col { flex: 1; background: #fafafa; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        .container { display: flex; gap: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 45%; }
+        h2 { color: #007660; }
         label { display: block; margin-top: 10px; font-weight: bold; }
-        select, input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #006633; color: white; border: none; padding: 10px 15px; margin-top: 15px; width: 100%; border-radius: 4px; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #004d26; }
-        .cart-item { border-bottom: 1px dashed #ccc; padding: 8px 0; font-size: 14px; }
-        .total { font-size: 18px; font-weight: bold; color: #d9534f; text-align: right; margin-top: 15px; }
-        .clear-btn { background-color: #d9534f; margin-top: 10px; }
-        .clear-btn:hover { background-color: #c9302c; }
+        select, input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { background-color: #007660; color: white; border: none; padding: 10px; width: 100%; margin-top: 15px; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        button:hover { background-color: #005c4b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #007660; color: white; }
     </style>
 </head>
 <body>
+
+    <h1>雲端點餐系統 (Supabase 連線版)</h1>
+
     <div class="container">
-        <h1>🍹 50嵐 線上點餐系統（網頁版）</h1>
-        <div class="row">
-            <!-- 左側：點餐表單 -->
-            <div class="col">
-                <h3>選擇商品</h3>
-                <form action="/add" method="POST">
-                    <label>品項與價格：</label>
-                    <select name="item_id">
-                        {% for item in menu %}
-                            <option value="{{ item.id }}">{{ item.name }} (中M:${item.M} / 大L:${item.L})</option>
-                        {% endfor %}
-                    </select>
-
-                    <label>容量：</label>
-                    <select name="size">
-                        <option value="M">中杯 (M)</option>
-                        <option value="L">大杯 (L)</option>
-                    </select>
-
-                    <label>甜度：</label>
-                    <select name="sugar">
-                        {% for sugar in sugar_options %}
-                            <option value="{{ sugar }}">{{ sugar }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <label>冰塊：</label>
-                    <select name="ice">
-                        {% for ice in ice_options %}
-                            <option value="{{ ice }}">{{ ice }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <label>數量：</label>
-                    <input type="number" name="qty" value="1" min="1" max="20">
-
-                    <button type="submit">加入購物車</button>
-                </form>
-            </div>
-
-            <!-- 右側：購物車與結帳 -->
-            <div class="col">
-                <h3>🛒 購物車清單</h3>
-                {% if cart %}
-                    {% for item in cart %}
-                        <div class="cart-item">
-                            <b>{{ item.name }}</b> ({{ item.size }})<br>
-                            {{ item.sugar }} / {{ item.ice }} | 數量: {{ item.qty }}<br>
-                            小計: ${{ item.total }}
-                        </div>
+        <!-- 點餐表單 -->
+        <div class="card">
+            <h2>點餐選擇</h2>
+            <form action="/add" method="POST">
+                <label>選擇品項：</label>
+                <select name="item_id">
+                    {% for item in menu %}
+                        <option value="{{ item.id }}">
+                            {{ item.name }} (中M:${{ item.price_m }} / 大L:${{ item.price_l }})
+                        </option>
                     {% endfor %}
-                    <div class="total">總計金額: ${{ total_amount }} 元</div>
-                    <form action="/clear">
-                        <button type="submit" class="clear-btn">清空購物車</button>
-                    </form>
-                {% else %}
-                    <p style="color: #888; text-align: center; margin-top: 40px;">目前購物車是空的</p>
-                {% endif %}
-            </div>
+                </select>
+
+                <label>選擇容量：</label>
+                <label><input type="radio" name="size" value="M" checked> 中杯 (M)</label>
+                <label><input type="radio" name="size" value="L"> 大杯 (L)</label>
+
+                <label>選擇甜度：</label>
+                <select name="sugar">
+                    {% for sugar in sugar_options %}
+                        <option value="{{ sugar }}">{{ sugar }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>選擇冰塊：</label>
+                <select name="ice">
+                    {% for ice in ice_options %}
+                        <option value="{{ ice }}">{{ ice }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>數量：</label>
+                <input type="number" name="qty" value="1" min="1">
+
+                <button type="submit">加入訂單並寫入雲端資料庫</button>
+            </form>
+        </div>
+
+        <!-- 歷史訂單紀錄清單 -->
+        <div class="card" style="width: 50%;">
+            <h2>雲端歷史訂單履歷</h2>
+            <table>
+                <tr>
+                    <th>品項</th>
+                    <th>容量</th>
+                    <th>甜度/冰塊</th>
+                    <th>數量</th>
+                    <th>小計</th>
+                </tr>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.item_name }}</td>
+                    <td>{{ order.size }}</td>
+                    <td>{{ order.sugar }} / {{ order.ice }}</td>
+                    <td>{{ order.qty }}</td>
+                    <td>${{ order.total_price }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            
+            <form action="/clear" method="POST" style="margin-top: 15px;">
+                <button type="submit" style="background-color: #d9534f;">清空歷史紀錄</button>
+            </form>
         </div>
     </div>
+
 </body>
 </html>
