@@ -1,18 +1,12 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-database_url = os.environ.get('DATABASE_URL')
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///orders.db'
+# 直接指定透過 Session pooler (Port 6543) 連線 Supabase，確保結尾是 .co
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres.caeoewoadclblbnjwjgg:gc001284614564@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -33,7 +27,7 @@ class OrderRecord(db.Model):
 @app.route('/')
 def index():
     try:
-        # 直接抓取所有品項，不特別分類品牌
+        # 從 Supabase 撈出所有品項
         menu_data = MenuItem.query.all()
         all_orders = OrderRecord.query.all()
     except Exception as e:
