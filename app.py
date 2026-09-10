@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
-# 嘗試載入本機的 .env 檔案（如果有的話，雲端環境沒有也不會報錯）
+# 嘗試載入本機的 .env 檔案（雲端環境沒有也不會報錯）
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -39,9 +39,15 @@ class OrderRecord(db.Model):
 # ==================== 路由與視圖函式 ====================
 @app.route('/')
 def index():
-    # 取得所有 50嵐 與 Macu 的品項供點餐使用
-    items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
-    items_macu = MenuItem.query.filter_by(brand='Macu').all()
+    try:
+        # 取得所有 50嵐 與 Macu 的品項供點餐使用
+        items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
+        items_macu = MenuItem.query.filter_by(brand='Macu').all()
+    except Exception as e:
+        items_50lan = []
+        items_macu = []
+        print(f"資料庫查詢錯誤: {e}")
+    
     return render_template('index.html', items_50lan=items_50lan, items_macu=items_macu)
 
 @app.route('/add_order', methods=['POST'])
@@ -51,9 +57,13 @@ def add_order():
     qty = request.form.get('qty', type=int)
 
     if brand and item_name and qty:
-        new_order = OrderRecord(brand=brand, item_name=item_name, qty=qty)
-        db.session.add(new_order)
-        db.session.commit()
+        try:
+            new_order = OrderRecord(brand=brand, item_name=item_name, qty=qty)
+            db.session.add(new_order)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"新增訂單錯誤: {e}")
 
     return redirect(url_for('index'))
 
@@ -61,4 +71,7 @@ if __name__ == '__main__':
     with app.app_context():
         # 自動建立資料庫表格（若尚未建立）
         db.create_all()
-    app.run(debug=True)
+    
+    # 支援 Render 動態指派的 Port，若本地執行則預設為 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
