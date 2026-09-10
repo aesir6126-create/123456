@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-# Supabase 直連設定
+# Supabase 連線設定（使用 `.com` 結尾與 Port 5432）
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres.caeoewoadclblbnjwjgg:gc001284614564@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -23,6 +23,20 @@ class OrderRecord(db.Model):
     brand = db.Column(db.String(50), nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
+
+# 自動初始化測試菜單資料（如果資料表是空的就自動補上）
+with app.app_context():
+    db.create_all()
+    if MenuItem.query.count() == 0:
+        sample_items = [
+            MenuItem(brand="精選茶飲", name="茉莉綠茶 / 阿薩姆紅茶"),
+            MenuItem(brand="精選茶飲", name="四季春青茶"),
+            MenuItem(brand="精選茶飲", name="黃金烏龍"),
+            MenuItem(brand="精選茶飲", name="椰果紅 / 綠"),
+            MenuItem(brand="精選茶飲", name="波霸紅 / 綠")
+        ]
+        db.session.bulk_save_objects(sample_items)
+        db.session.commit()
 
 @app.route('/')
 def index():
