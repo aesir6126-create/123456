@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雲端點餐系統</title>
+    <title>線上點餐系統</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f7f6; }
         .container { display: flex; gap: 30px; }
@@ -19,17 +19,17 @@
 </head>
 <body>
 
-    <h1>🥤 雲端點餐系統 (50嵐 & 麻古茶坊)</h1>
+    <h1>🥤 線上快速點餐系統</h1>
 
     <div class="container">
         <div class="card">
-            <h2>點餐選擇</h2>
+            <h2>選擇品項</h2>
             <form action="/add" method="POST">
-                <label>選擇品項：</label>
+                <label>品項名稱：</label>
                 <select name="item_id" required>
                     {% for item in menu %}
                         <option value="{{ item.id }}">
-                            [{{ item.brand }}] {{ item.name }}
+                            {{ item.name }}
                         </option>
                     {% endfor %}
                 </select>
@@ -37,21 +37,19 @@
                 <label>數量：</label>
                 <input type="number" name="qty" value="1" min="1" required>
 
-                <button type="submit">加入訂單並寫入雲端資料庫</button>
+                <button type="submit">送出訂單</button>
             </form>
         </div>
 
         <div class="card" style="width: 50%;">
-            <h2>雲端歷史訂單履歷</h2>
+            <h2>歷史訂單紀錄</h2>
             <table>
                 <tr>
-                    <th>品牌</th>
                     <th>品項</th>
                     <th>數量</th>
                 </tr>
                 {% for order in orders %}
                 <tr>
-                    <td>{{ order.brand }}</td>
                     <td>{{ order.item_name }}</td>
                     <td>{{ order.qty }}</td>
                 </tr>
