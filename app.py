@@ -5,8 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-# 改用 SQLite，讓 Render 100% 順利運行
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'
+# 直接硬編碼寫死你的 Supabase Session Pooler 網址，強制繞過環境變數干擾
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres.caeoewoadclblbnjwjgg:gc001284614564@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -23,20 +23,6 @@ class OrderRecord(db.Model):
     brand = db.Column(db.String(50), nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
-
-# 自動初始化測試資料
-with app.app_context():
-    db.create_all()
-    if MenuItem.query.count() == 0:
-        sample_items = [
-            MenuItem(brand="精選茶飲", name="茉莉綠茶 / 阿薩姆紅茶"),
-            MenuItem(brand="精選茶飲", name="四季春青茶"),
-            MenuItem(brand="精選茶飲", name="黃金烏龍"),
-            MenuItem(brand="精選茶飲", name="椰果紅 / 綠"),
-            MenuItem(brand="精選茶飲", name="波霸紅 / 綠")
-        ]
-        db.session.bulk_save_objects(sample_items)
-        db.session.commit()
 
 @app.route('/')
 def index():
