@@ -2,21 +2,13 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
-# 嘗試載入本機的 .env 檔案（雲端環境沒有也不會報錯）
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
-# 檢查是否有設定 DATABASE_URL，若沒有則直接終止程式
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise RuntimeError("錯誤：尚未設定 DATABASE_URL 環境變數！請先設定後再執行程式。")
-
 app = Flask(__name__)
 
-# 資料庫連線設定
+# 讀取環境變數中的資料庫網址
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("錯誤：尚未設定 DATABASE_URL 環境變數！")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -39,13 +31,12 @@ class OrderRecord(db.Model):
 # ==================== 路由與視圖函式 ====================
 @app.route('/')
 def index():
+    items_50lan = []
+    items_macu = []
     try:
-        # 取得所有 50嵐 與 Macu 的品項供點餐使用
         items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
-        items_macu = MenuItem.query.filter_by(brand='麻古茶坊').all()
+        items_macu = MenuItem.query.filter_by(brand='Macu').all()
     except Exception as e:
-        items_50lan = []
-        items_macu = []
         print(f"資料庫查詢錯誤: {e}")
     
     return render_template('index.html', items_50lan=items_50lan, items_macu=items_macu)
@@ -68,9 +59,5 @@ def add_order():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-    
-    # 支援 Render 動態指派的 Port，若本地執行則預設為 5000
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
