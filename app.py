@@ -34,8 +34,9 @@ def index():
     items_50lan = []
     items_macu = []
     try:
+        # 品牌名稱改為「50嵐」與「麻古茶坊」
         items_50lan = MenuItem.query.filter_by(brand='50嵐').all()
-        items_macu = MenuItem.query.filter_by(brand='Macu').all()
+        items_macu = MenuItem.query.filter_by(brand='麻古茶坊').all()
     except Exception as e:
         print(f"資料庫查詢錯誤: {e}")
     
