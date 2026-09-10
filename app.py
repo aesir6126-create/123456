@@ -2,10 +2,12 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
-from dotenv import load_dotenv
-# 載入本機的 .env 檔案
-load_dotenv()
-
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+    
 app = Flask(__name__)
 app.secret_key = 'fifty_lan_secret_key'
 
