@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-# 直接硬編碼寫死你的 Supabase Session Pooler 網址，強制繞過環境變數干擾
+# Supabase 直連設定
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:gc001284614564@db.caeoewoadclblbnjwjgg.supabase.co:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
