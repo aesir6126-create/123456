@@ -5,8 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-# 直接指定透過 Session pooler (Port 6543) 連線 Supabase，確保結尾是 .co
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres.caeoewoadclblbnjwjgg:gc001284614564@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres"
+# 改用 SQLite，讓 Render 100% 順利運行
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -24,10 +24,23 @@ class OrderRecord(db.Model):
     item_name = db.Column(db.String(100), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
 
+# 自動初始化測試資料
+with app.app_context():
+    db.create_all()
+    if MenuItem.query.count() == 0:
+        sample_items = [
+            MenuItem(brand="精選茶飲", name="茉莉綠茶 / 阿薩姆紅茶"),
+            MenuItem(brand="精選茶飲", name="四季春青茶"),
+            MenuItem(brand="精選茶飲", name="黃金烏龍"),
+            MenuItem(brand="精選茶飲", name="椰果紅 / 綠"),
+            MenuItem(brand="精選茶飲", name="波霸紅 / 綠")
+        ]
+        db.session.bulk_save_objects(sample_items)
+        db.session.commit()
+
 @app.route('/')
 def index():
     try:
-        # 從 Supabase 撈出所有品項
         menu_data = MenuItem.query.all()
         all_orders = OrderRecord.query.all()
     except Exception as e:
