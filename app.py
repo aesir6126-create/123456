@@ -68,9 +68,8 @@ def add_order():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        # 自動建立資料庫表格（若尚未建立）
-        db.create_all()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
     
     # 支援 Render 動態指派的 Port，若本地執行則預設為 5000
     port = int(os.environ.get("PORT", 5000))
