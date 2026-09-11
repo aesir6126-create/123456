@@ -42,11 +42,11 @@ with app.app_context():
         db.session.bulk_save_objects(sample_items)
         db.session.commit()
 
+# 前台：點餐頁面
 @app.route('/')
 def index():
     try:
         menu_items = MenuItem.query.all()
-        # 取得所有不重複的品牌清單
         brands = sorted(list(set(item.brand for item in menu_items)))
         all_orders = OrderRecord.query.all()
     except Exception as e:
@@ -57,6 +57,7 @@ def index():
     
     return render_template('index.html', menu_items=menu_items, brands=brands, orders=all_orders)
 
+# 前台：加入訂單
 @app.route('/add', methods=['POST'])
 def add_to_cart():
     item_id = request.form.get('item_id')
@@ -79,11 +80,50 @@ def add_to_cart():
         
     return redirect(url_for('index'))
 
+# 前台：清除訂單紀錄
 @app.route('/clear', methods=['POST'])
 def clear_history():
     OrderRecord.query.delete()
     db.session.commit()
     return redirect(url_for('index'))
+
+# 後台：管理選單主頁
+@app.route('/admin')
+def admin_menu():
+    items = MenuItem.query.all()
+    edit_item = None
+    edit_id = request.args.get('edit_id')
+    if edit_id:
+        edit_item = MenuItem.query.get(edit_id)
+    return render_template('admin.html', items=items, edit_item=edit_item)
+
+# 後台：新增品項
+@app.route('/admin/add', methods=['POST'])
+def admin_add():
+    brand = request.form.get('brand')
+    name = request.form.get('name')
+    if brand and name:
+        new_item = MenuItem(brand=brand, name=name)
+        db.session.add(new_item)
+        db.session.commit()
+    return redirect(url_for('admin_menu'))
+
+# 後台：更新品項
+@app.route('/admin/update/<int:id>', methods=['POST'])
+def admin_update(id):
+    item = MenuItem.query.get_or_404(id)
+    item.brand = request.form.get('brand')
+    item.name = request.form.get('name')
+    db.session.commit()
+    return redirect(url_for('admin_menu'))
+
+# 後台：刪除品項
+@app.route('/admin/delete/<int:id>', methods=['POST'])
+def admin_delete(id):
+    item = MenuItem.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for('admin_menu'))
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
