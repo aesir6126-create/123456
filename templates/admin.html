@@ -3,45 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>«~µP»P«~¶µºŞ²z«á¥x</title>
+    <title>å“ç‰Œèˆ‡å“é …ç®¡ç†å¾Œå°</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
     <div class="container mt-5 mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>?? «~µP»P«~¶µºŞ²z«á¥x</h2>
-            <a href="/" class="btn btn-outline-primary">?? ªğ¦^ÂIÀ\­º­¶</a>
+            <h2>âš™ï¸ å“ç‰Œèˆ‡å“é …ç®¡ç†å¾Œå°</h2>
+            <a href="/" class="btn btn-outline-primary">ğŸ  è¿”å›é»é¤é¦–é </a>
         </div>
 
-        <!-- ·s¼W©Î­×§ïªí³æ -->
+        <!-- æ–°å¢æˆ–ä¿®æ”¹è¡¨å–® -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <h5 class="card-title">{% if edit_item %}­×§ï«~¶µ¸ê®Æ{% else %}·s¼W«~µP»P«~¶µ{% endif %}</h5>
+                <h5 class="card-title">{% if edit_item %}ä¿®æ”¹å“é …è³‡æ–™{% else %}æ–°å¢å“ç‰Œèˆ‡å“é …{% endif %}</h5>
                 <form action="{% if edit_item %}/admin/update/{{ edit_item.id }}{% else %}/admin/add{% endif %}" method="POST">
                     <div class="form-row">
                         <div class="form-group col-md-5">
-                            <label for="brand">«~µP¦WºÙ¡G</label>
-                            <input type="text" name="brand" id="brand" class="form-control" value="{% if edit_item %}{{ edit_item.brand }}{% endif %}" placeholder="¨Ò¦p¡G50´P" required>
+                            <label for="brand">å“ç‰Œåç¨±ï¼š</label>
+                            <input type="text" name="brand" id="brand" class="form-control" value="{% if edit_item %}{{ edit_item.brand }}{% endif %}" placeholder="ä¾‹å¦‚ï¼š50åµ" required>
                         </div>
                         <div class="form-group col-md-5">
-                            <label for="name">«~¶µ¦WºÙ¡G</label>
-                            <input type="text" name="name" id="name" class="form-control" value="{% if edit_item %}{{ edit_item.name }}{% endif %}" placeholder="¨Ò¦p¡G¬Ã¯]¥¤¯ù" required>
+                            <label for="name">å“é …åç¨±ï¼š</label>
+                            <input type="text" name="name" id="name" class="form-control" value="{% if edit_item %}{{ edit_item.name }}{% endif %}" placeholder="ä¾‹å¦‚ï¼šçç å¥¶èŒ¶" required>
                         </div>
                         <div class="form-group col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success btn-block">{% if edit_item %}½T»{­×§ï{% else %}·s¼W«~¶µ{% endif %}</button>
+                            <button type="submit" class="btn btn-success btn-block">{% if edit_item %}ç¢ºèªä¿®æ”¹{% else %}æ–°å¢å“é …{% endif %}</button>
                         </div>
                     </div>
                     {% if edit_item %}
-                    <a href="/admin" class="btn btn-secondary btn-sm">¨ú®ø½s¿è</a>
+                    <a href="/admin" class="btn btn-secondary btn-sm">å–æ¶ˆç·¨è¼¯</a>
                     {% endif %}
                 </form>
             </div>
         </div>
 
-        <!-- ²{¦³«~¶µ²M³æ¦Cªí -->
+        <!-- ç¾æœ‰å“é …æ¸…å–®åˆ—è¡¨ -->
         <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="mb-0">²{¦³µæ³æ¦Cªí</h5>
+                <h5 class="mb-0">ç¾æœ‰èœå–®åˆ—è¡¨</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -49,9 +49,9 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>«~µP</th>
-                                <th>«~¶µ¦WºÙ</th>
-                                <th class="text-right">¾Ş§@</th>
+                                <th>å“ç‰Œ</th>
+                                <th>å“é …åç¨±</th>
+                                <th class="text-right">æ“ä½œ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,15 +61,15 @@
                                 <td>{{ item.brand }}</td>
                                 <td>{{ item.name }}</td>
                                 <td class="text-right">
-                                    <a href="/admin?edit_id={{ item.id }}" class="btn btn-warning btn-sm">­×§ï</a>
-                                    <form action="/admin/delete/{{ item.id }}" method="POST" class="d-inline" onsubmit="return confirm('½T©w­n§R°£³o­Ó«~¶µ¶Ü¡H');">
-                                        <button type="submit" class="btn btn-danger btn-sm">§R°£</button>
+                                    <a href="/admin?edit_id={{ item.id }}" class="btn btn-warning btn-sm">ä¿®æ”¹</a>
+                                    <form action="/admin/delete/{{ item.id }}" method="POST" class="d-inline" onsubmit="return confirm('ç¢ºå®šè¦åˆªé™¤é€™å€‹å“é …å—ï¼Ÿ');">
+                                        <button type="submit" class="btn btn-danger btn-sm">åˆªé™¤</button>
                                     </form>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted">¥Ø«e©|µL¥ô¦ó«~¶µ¸ê®Æ</td>
+                                <td colspan="4" class="text-center text-muted">ç›®å‰å°šç„¡ä»»ä½•å“é …è³‡æ–™</td>
                             </tr>
                             {% endfor %}
                         </tbody>
