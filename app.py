@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'general_order_secret_key'
 
-# Supabase 連線設定（使用 `.com` 結尾與 Port 5432）
+# Supabase 連線設定
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres.caeoewoadclblbnjwjgg:gc001284614564@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -23,8 +23,10 @@ class OrderRecord(db.Model):
     brand = db.Column(db.String(50), nullable=False)
     item_name = db.Column(db.String(100), nullable=False)
     qty = db.Column(db.Integer, nullable=False)
+    sweetness = db.Column(db.String(20), nullable=False)
+    ice = db.Column(db.String(20), nullable=False)
 
-# 自動初始化測試菜單資料（如果資料表是空的就自動補上）
+# 自動初始化測試菜單資料
 with app.app_context():
     db.create_all()
     if MenuItem.query.count() == 0:
@@ -54,6 +56,8 @@ def index():
 def add_to_cart():
     item_id = request.form.get('item_id')
     qty = int(request.form.get('qty', 1))
+    sweetness = request.form.get('sweetness', '正常甜')
+    ice = request.form.get('ice', '正常冰')
     
     selected_item = MenuItem.query.get(item_id)
     
@@ -61,7 +65,9 @@ def add_to_cart():
         new_order = OrderRecord(
             brand=selected_item.brand,
             item_name=selected_item.name,
-            qty=qty
+            qty=qty,
+            sweetness=sweetness,
+            ice=ice
         )
         db.session.add(new_order)
         db.session.commit()
