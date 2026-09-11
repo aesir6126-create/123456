@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>品牌與品項管理後台</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>?? 品牌與品項管理後台</h2>
+            <a href="/" class="btn btn-outline-primary">?? 返回點餐首頁</a>
+        </div>
+
+        <!-- 新增或修改表單 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">{% if edit_item %}修改品項資料{% else %}新增品牌與品項{% endif %}</h5>
+                <form action="{% if edit_item %}/admin/update/{{ edit_item.id }}{% else %}/admin/add{% endif %}" method="POST">
+                    <div class="form-row">
+                        <div class="form-group col-md-5">
+                            <label for="brand">品牌名稱：</label>
+                            <input type="text" name="brand" id="brand" class="form-control" value="{% if edit_item %}{{ edit_item.brand }}{% endif %}" placeholder="例如：50嵐" required>
+                        </div>
+                        <div class="form-group col-md-5">
+                            <label for="name">品項名稱：</label>
+                            <input type="text" name="name" id="name" class="form-control" value="{% if edit_item %}{{ edit_item.name }}{% endif %}" placeholder="例如：珍珠奶茶" required>
+                        </div>
+                        <div class="form-group col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success btn-block">{% if edit_item %}確認修改{% else %}新增品項{% endif %}</button>
+                        </div>
+                    </div>
+                    {% if edit_item %}
+                    <a href="/admin" class="btn btn-secondary btn-sm">取消編輯</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- 現有品項清單列表 -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">現有菜單列表</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>品牌</th>
+                                <th>品項名稱</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ item.brand }}</td>
+                                <td>{{ item.name }}</td>
+                                <td class="text-right">
+                                    <a href="/admin?edit_id={{ item.id }}" class="btn btn-warning btn-sm">修改</a>
+                                    <form action="/admin/delete/{{ item.id }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這個品項嗎？');">
+                                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">目前尚無任何品項資料</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
