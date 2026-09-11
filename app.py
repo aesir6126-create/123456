@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -25,6 +26,7 @@ class OrderRecord(db.Model):
     qty = db.Column(db.Integer, nullable=False)
     sweetness = db.Column(db.String(20), nullable=False)
     ice = db.Column(db.String(20), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # 自動初始化測試菜單資料
 with app.app_context():
@@ -48,7 +50,7 @@ def index():
     try:
         menu_items = MenuItem.query.all()
         brands = sorted(list(set(item.brand for item in menu_items)))
-        all_orders = OrderRecord.query.all()
+        all_orders = OrderRecord.query.order_by(OrderRecord.created_at.desc()).all()
     except Exception as e:
         print(f"資料庫查詢錯誤: {e}")
         menu_items = []
@@ -80,7 +82,15 @@ def add_to_cart():
         
     return redirect(url_for('index'))
 
-# 前台：清除訂單紀錄
+# 前台：單筆刪除訂單
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_order(id):
+    order = OrderRecord.query.get_or_404(id)
+    db.session.delete(order)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+# 前台：清除全部訂單紀錄
 @app.route('/clear', methods=['POST'])
 def clear_history():
     OrderRecord.query.delete()
