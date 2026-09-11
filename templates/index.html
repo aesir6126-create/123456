@@ -8,7 +8,10 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5 mb-5">
-        <h2 class="text-center mb-4">線上點餐系統</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>線上點餐系統</h2>
+            <a href="/admin" class="btn btn-outline-secondary">⚙️ 品牌與品項管理後台</a>
+        </div>
 
         <!-- 點餐表單 -->
         <div class="card shadow-sm mb-4">
@@ -113,7 +116,6 @@
 
     <!-- 品牌與品項連動的 JavaScript -->
     <script>
-        // 將後端的品項資料轉換成前端可用的 JS 物件陣列
         const allItems = [
             {% for item in menu_items %}
                 { id: "{{ item.id }}", brand: "{{ item.brand }}", name: "{{ item.name }}" },
@@ -125,8 +127,6 @@
 
         brandSelect.addEventListener('change', function() {
             const selectedBrand = this.value;
-            
-            // 清空並重置第二個選單
             itemSelect.innerHTML = '<option value="">-- 請選擇餐點品項 --</option>';
             
             if (!selectedBrand) {
@@ -134,7 +134,6 @@
                 return;
             }
 
-            // 篩選出屬於該品牌的品項
             const filteredItems = allItems.filter(item => item.brand === selectedBrand);
 
             filteredItems.forEach(item => {
