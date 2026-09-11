@@ -31,11 +31,13 @@ with app.app_context():
     db.create_all()
     if MenuItem.query.count() == 0:
         sample_items = [
-            MenuItem(brand="精選茶飲", name="茉莉綠茶 / 阿薩姆紅茶"),
-            MenuItem(brand="精選茶飲", name="四季春青茶"),
-            MenuItem(brand="精選茶飲", name="黃金烏龍"),
-            MenuItem(brand="精選茶飲", name="椰果紅 / 綠"),
-            MenuItem(brand="精選茶飲", name="波霸紅 / 綠")
+            MenuItem(brand="50嵐", name="茉莉綠茶"),
+            MenuItem(brand="50嵐", name="四季春青茶"),
+            MenuItem(brand="50嵐", name="波霸奶茶"),
+            MenuItem(brand="大苑子", name="愛文芒果冰沙"),
+            MenuItem(brand="大苑子", name="柳橙綠茶"),
+            MenuItem(brand="麻古茶坊", name="芝芝葡萄果粒"),
+            MenuItem(brand="麻古茶坊", name="楊枝甘露")
         ]
         db.session.bulk_save_objects(sample_items)
         db.session.commit()
@@ -43,14 +45,17 @@ with app.app_context():
 @app.route('/')
 def index():
     try:
-        menu_data = MenuItem.query.all()
+        menu_items = MenuItem.query.all()
+        # 取得所有不重複的品牌清單
+        brands = sorted(list(set(item.brand for item in menu_items)))
         all_orders = OrderRecord.query.all()
     except Exception as e:
         print(f"資料庫查詢錯誤: {e}")
-        menu_data = []
+        menu_items = []
+        brands = []
         all_orders = []
     
-    return render_template('index.html', menu=menu_data, orders=all_orders)
+    return render_template('index.html', menu_items=menu_items, brands=brands, orders=all_orders)
 
 @app.route('/add', methods=['POST'])
 def add_to_cart():
