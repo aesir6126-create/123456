@@ -14,13 +14,23 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form action="/add" method="POST">
+                    
+                    <!-- 第一部分：選擇品牌 -->
                     <div class="form-group">
-                        <label for="item_id">選擇品項：</label>
-                        <select name="item_id" id="item_id" class="form-control" required>
-                            <option value="">-- 請選擇餐點品項 --</option>
-                            {% for item in menu %}
-                                <option value="{{ item.id }}">[{{ item.brand }}] {{ item.name }}</option>
+                        <label for="brand_select">1. 選擇品牌：</label>
+                        <select id="brand_select" class="form-control" required>
+                            <option value="">-- 請先選擇品牌 --</option>
+                            {% for brand in brands %}
+                                <option value="{{ brand }}">{{ brand }}</option>
                             {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- 第二部分：選擇品項名稱 -->
+                    <div class="form-group">
+                        <label for="item_id">2. 選擇品項名稱：</label>
+                        <select name="item_id" id="item_id" class="form-control" required disabled>
+                            <option value="">-- 請先選擇品牌後再選擇品項 --</option>
                         </select>
                     </div>
 
@@ -100,5 +110,42 @@
             </div>
         </div>
     </div>
+
+    <!-- 品牌與品項連動的 JavaScript -->
+    <script>
+        // 將後端的品項資料轉換成前端可用的 JS 物件陣列
+        const allItems = [
+            {% for item in menu_items %}
+                { id: "{{ item.id }}", brand: "{{ item.brand }}", name: "{{ item.name }}" },
+            {% endfor %}
+        ];
+
+        const brandSelect = document.getElementById('brand_select');
+        const itemSelect = document.getElementById('item_id');
+
+        brandSelect.addEventListener('change', function() {
+            const selectedBrand = this.value;
+            
+            // 清空並重置第二個選單
+            itemSelect.innerHTML = '<option value="">-- 請選擇餐點品項 --</option>';
+            
+            if (!selectedBrand) {
+                itemSelect.disabled = true;
+                return;
+            }
+
+            // 篩選出屬於該品牌的品項
+            const filteredItems = allItems.filter(item => item.brand === selectedBrand);
+
+            filteredItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                itemSelect.appendChild(option);
+            });
+
+            itemSelect.disabled = false;
+        });
+    </script>
 </body>
 </html>
