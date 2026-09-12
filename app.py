@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -51,6 +51,12 @@ def index():
         menu_items = MenuItem.query.all()
         brands = sorted(list(set(item.brand for item in menu_items)))
         all_orders = OrderRecord.query.order_by(OrderRecord.created_at.desc()).all()
+        
+        # 將資料庫的 UTC 時間轉換為台灣時間 (UTC+8)
+        for order in all_orders:
+            if order.created_at:
+                order.created_at = order.created_at + timedelta(hours=8)
+                
     except Exception as e:
         print(f"資料庫查詢錯誤: {e}")
         menu_items = []
