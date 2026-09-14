@@ -143,12 +143,11 @@ def admin_delete(id):
     db.session.commit()
     return redirect(url_for('admin_menu'))
 
-# 後台：匯出 CSV 檔
+# 後台：匯出 CSV 檔 (改為 Big5 編碼，讓 Excel 直接開啟不亂碼)
 @app.route('/admin/export')
 def admin_export_csv():
     items = MenuItem.query.all()
     
-    # 建立記憶體字串串流
     output = io.StringIO()
     writer = csv.writer(output)
     
@@ -161,14 +160,16 @@ def admin_export_csv():
         
     output.seek(0)
     
-    # 回傳 CSV 檔案供下載 (使用 utf-8-sig 讓 Excel 開啟中文不會亂碼)
+    # 使用 big5 編碼並加入 errors='ignore'，避免遇到特殊字元報錯
+    csv_data = output.getvalue().encode('big5', errors='ignore')
+    
     return Response(
-        output.getvalue().encode('utf-8-sig'),
+        csv_data,
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=menu_items.csv"}
     )
 
-# 後台：匯入 CSV 檔
+# 後台：匯入 CSV 檔 (自動偵測編碼：utf-8-sig / big5 / cp950)
 @app.route('/admin/import', methods=['POST'])
 def admin_import_csv():
     if 'csv_file' not in request.files:
@@ -180,23 +181,34 @@ def admin_import_csv():
         
     if file:
         try:
-            # 讀取上傳的檔案內容 (支援 utf-8 與 utf-8-sig)
-            stream = io.TextIOWrapper(file.stream, encoding='utf-8-sig')
-            reader = csv.reader(stream)
+            file_bytes = file.read()
+            decoded_text = None
             
-            header = next(reader, None) # 跳過標題列
-            if header:
-                for row in reader:
-                    if len(row) >= 2:
-                        brand = row[0].strip()
-                        name = row[1].strip()
-                        if brand and name:
-                            # 檢查是否已經存在相同的品牌與品項，避免重複匯入
-                            existing = MenuItem.query.filter_by(brand=brand, name=name).first()
-                            if not existing:
-                                new_item = MenuItem(brand=brand, name=name)
-                                db.session.add(new_item)
-                db.session.commit()
+            # 自動嘗試常見的編碼格式
+            for enc in ['utf-8-sig', 'big5', 'cp950', 'utf-8']:
+                try:
+                    decoded_text = file_bytes.decode(enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if decoded_text:
+                stream = io.StringIO(decoded_text)
+                reader = csv.reader(stream)
+                
+                header = next(reader, None) # 跳過標題列
+                if header:
+                    for row in reader:
+                        if len(row) >= 2:
+                            brand = row[0].strip()
+                            name = row[1].strip()
+                            if brand and name:
+                                # 檢查是否已經存在相同的品牌與品項，避免重複匯入
+                                existing = MenuItem.query.filter_by(brand=brand, name=name).first()
+                                if not existing:
+                                    new_item = MenuItem(brand=brand, name=name)
+                                    db.session.add(new_item)
+                    db.session.commit()
         except Exception as e:
             print(f"CSV 匯入錯誤: {e}")
             
