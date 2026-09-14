@@ -1,6 +1,8 @@
 import os
+import csv
+import io
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, Response
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -139,6 +141,65 @@ def admin_delete(id):
     item = MenuItem.query.get_or_404(id)
     db.session.delete(item)
     db.session.commit()
+    return redirect(url_for('admin_menu'))
+
+# 後台：匯出 CSV 檔
+@app.route('/admin/export')
+def admin_export_csv():
+    items = MenuItem.query.all()
+    
+    # 建立記憶體字串串流
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # 寫入 CSV 標頭
+    writer.writerow(['brand', 'name'])
+    
+    # 寫入各筆資料
+    for item in items:
+        writer.writerow([item.brand, item.name])
+        
+    output.seek(0)
+    
+    # 回傳 CSV 檔案供下載 (使用 utf-8-sig 讓 Excel 開啟中文不會亂碼)
+    return Response(
+        output.getvalue().encode('utf-8-sig'),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=menu_items.csv"}
+    )
+
+# 後台：匯入 CSV 檔
+@app.route('/admin/import', methods=['POST'])
+def admin_import_csv():
+    if 'csv_file' not in request.files:
+        return redirect(url_for('admin_menu'))
+        
+    file = request.files['csv_file']
+    if file.filename == '':
+        return redirect(url_for('admin_menu'))
+        
+    if file:
+        try:
+            # 讀取上傳的檔案內容 (支援 utf-8 與 utf-8-sig)
+            stream = io.TextIOWrapper(file.stream, encoding='utf-8-sig')
+            reader = csv.reader(stream)
+            
+            header = next(reader, None) # 跳過標題列
+            if header:
+                for row in reader:
+                    if len(row) >= 2:
+                        brand = row[0].strip()
+                        name = row[1].strip()
+                        if brand and name:
+                            # 檢查是否已經存在相同的品牌與品項，避免重複匯入
+                            existing = MenuItem.query.filter_by(brand=brand, name=name).first()
+                            if not existing:
+                                new_item = MenuItem(brand=brand, name=name)
+                                db.session.add(new_item)
+                db.session.commit()
+        except Exception as e:
+            print(f"CSV 匯入錯誤: {e}")
+            
     return redirect(url_for('admin_menu'))
 
 if __name__ == '__main__':
