@@ -13,6 +13,26 @@
             <a href="/" class="btn btn-outline-primary">🏠 返回點餐首頁</a>
         </div>
 
+        <!-- CSV 匯入與匯出工具列 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body bg-white">
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <h6 class="text-secondary mb-2">📁 CSV 資料管理</h6>
+                        <a href="/admin/export" class="btn btn-info btn-sm">📥 匯出品牌品項 CSV</a>
+                    </div>
+                    <div class="col-md-6">
+                        <form action="/admin/import" method="POST" enctype="multipart/form-data" class="form-inline justify-content-md-end">
+                            <div class="form-group mr-2 mb-2 mb-md-0">
+                                <input type="file" name="csv_file" accept=".csv" class="form-control-file form-control-sm" required>
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('確定要匯入此 CSV 檔案嗎？（重複的品項將會被略過）');">📤 匯入 CSV</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 新增或修改表單 -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
