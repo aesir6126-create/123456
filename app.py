@@ -135,17 +135,26 @@ def admin_delete(id):
     db.session.commit()
     return redirect(url_for('admin_menu'))
 
-# 後台：匯出 CSV 檔 (Big5 編碼)
+# 後台：匯出 CSV 檔 (改為 UTF-8 with BOM 編碼)
 @app.route('/admin/export')
 def admin_export_csv():
     items = MenuItem.query.all()
+    
     output = io.StringIO()
     writer = csv.writer(output)
+    
+    # 寫入 CSV 標頭
     writer.writerow(['brand', 'name'])
+    
+    # 寫入各筆資料
     for item in items:
         writer.writerow([item.brand, item.name])
+        
     output.seek(0)
-    csv_data = output.getvalue().encode('big5', errors='ignore')
+    
+    # 使用 utf-8-sig 編碼（帶有 BOM 標記，Excel 開啟時能自動辨識為 UTF-8 中文）
+    csv_data = output.getvalue().encode('utf-8-sig', errors='ignore')
+    
     return Response(
         csv_data,
         mimetype="text/csv",
