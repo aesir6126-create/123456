@@ -3,80 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>線上點餐系統</title>
+    <title>揪團點餐系統</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
     <div class="container mt-5 mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>線上點餐系統</h2>
-            <a href="/admin" class="btn btn-outline-secondary">⚙️ 品牌與品項管理後台</a>
+            <h2>🧋 揪團點餐系統</h2>
+            <a href="/admin" class="btn btn-outline-secondary">⚙️ 進入後台管理</a>
         </div>
 
-        <!-- 點餐表單 -->
+        <!-- 點餐表單卡片 -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
+                <h5 class="card-title text-primary mb-3">我要點餐</h5>
                 <form action="/add" method="POST">
-                    
-                    <!-- 第一部分：選擇品牌 -->
-                    <div class="form-group">
-                        <label for="brand_select">1. 選擇品牌：</label>
-                        <select id="brand_select" class="form-control" required>
-                            <option value="">-- 請先選擇品牌 --</option>
-                            {% for brand in brands %}
+                    <div class="form-row">
+                        <!-- 選擇品牌 -->
+                        <div class="form-group col-md-3">
+                            <label for="brandSelect">選擇品牌：</label>
+                            id="brandSelect" class="form-control" onchange="filterItems()">
+                                <option value="" disabled selected>請選擇品牌</option>
+                                {% for brand in brands %}
                                 <option value="{{ brand }}">{{ brand }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                    <!-- 第二部分：選擇品項名稱 -->
-                    <div class="form-group">
-                        <label for="item_id">2. 選擇品項名稱：</label>
-                        <select name="item_id" id="item_id" class="form-control" required disabled>
-                            <option value="">-- 請先選擇品牌後再選擇品項 --</option>
-                        </select>
+                        <!-- 選擇品項 -->
+                        <div class="form-group col-md-4">
+                            <label for="itemSelect">選擇品項：</label>
+                            <select id="itemSelect" name="item_id" class="form-control" required>
+                                <option value="" disabled selected>請先選擇品牌</option>
+                                {% for item in menu_items %}
+                                <option value="{{ item.id }}" data-brand="{{ item.brand }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 數量 -->
+                        <div class="form-group col-md-2">
+                            <label for="qty">數量：</label>
+                            <input type="number" class="form-control" id="qty" name="qty" value="1" min="1" required>
+                        </div>
+
+                        <!-- 甜度 -->
+                        <div class="form-group col-md-3">
+                            <label for="sweetness">甜度：</label>
+                            <select class="form-control" id="sweetness" name="sweetness">
+                                <option value="正常甜">正常甜</option>
+                                <option value="少糖">少糖</option>
+                                <option value="半糖">半糖</option>
+                                <option value="微糖">微糖</option>
+                                <option value="無糖">無糖</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="sweetness">甜度：</label>
-                            <select name="sweetness" id="sweetness" class="form-control" required>
-                                <option value="正常甜">正常甜 (100%)</option>
-                                <option value="少糖">少糖 (70%)</option>
-                                <option value="半糖">半糖 (50%)</option>
-                                <option value="微糖">微糖 (30%)</option>
-                                <option value="無糖">無糖 (0%)</option>
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
+                        <!-- 冰塊 -->
+                        <div class="form-group col-md-4">
                             <label for="ice">冰塊：</label>
-                            <select name="ice" id="ice" class="form-control" required>
+                            <select class="form-control" id="ice" name="ice">
                                 <option value="正常冰">正常冰</option>
                                 <option value="少冰">少冰</option>
                                 <option value="微冰">微冰</option>
                                 <option value="去冰">去冰</option>
-                                <option value="完全去冰">完全去冰</option>
-                                <option value="溫熱飲">溫 / 熱</option>
+                                <option value="熱飲">熱飲</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="qty">數量：</label>
-                        <input type="number" name="qty" id="qty" class="form-control" value="1" min="1" required>
-                    </div>
+                        <!-- 備註欄位 -->
+                        <div class="form-group col-md-6">
+                            <label for="note">備註 / 客製化需求：</label>
+                            <input type="text" class="form-control" id="note" name="note" placeholder="例如：少冰、微糖、不要珍珠">
+                        </div>
 
-                    <button type="submit" class="btn btn-primary btn-block">加入訂單</button>
+                        <!-- 送出按鈕 -->
+                        <div class="form-group col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-block">加入訂單</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- 訂單列表 -->
+        <!-- 目前所有訂單列表 -->
         <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">目前訂單紀錄</h5>
-                <form action="/clear" method="POST" class="mb-0" onsubmit="return confirm('確定要清除所有訂單紀錄嗎？');">
-                    <button type="submit" class="btn btn-danger btn-sm">清除所有紀錄</button>
+            <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                <h5 class="mb-0 text-secondary">📋 目前所有訂單清單</h5>
+                <!-- 清除全部訂單按鈕 -->
+                <form action="/clear" method="POST" class="d-inline" onsubmit="return confirm('確定要清除所有訂單紀錄嗎？');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">🗑️ 清除全部訂單</button>
                 </form>
             </div>
             <div class="card-body">
@@ -87,9 +105,9 @@
                                 <th>#</th>
                                 <th>品牌</th>
                                 <th>品項名稱</th>
-                                <th>甜度</th>
-                                <th>冰塊</th>
                                 <th>數量</th>
+                                <th>甜度 / 冰塊</th>
+                                <th>備註</th>
                                 <th>下單時間</th>
                                 <th class="text-right">操作</th>
                             </tr>
@@ -100,19 +118,20 @@
                                 <td>{{ loop.index }}</td>
                                 <td>{{ order.brand }}</td>
                                 <td>{{ order.item_name }}</td>
-                                <td>{{ order.sweetness }}</td>
-                                <td>{{ order.ice }}</td>
                                 <td>{{ order.qty }}</td>
-                                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') if order.created_at else '' }}</td>
+                                <td>{{ order.sweetness }} / {{ order.ice }}</td>
+                                <td>{{ order.note if order.note else '-' }}</td>
+                                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') if order.created_at else '-' }}</td>
                                 <td class="text-right">
+                                    <!-- 單筆刪除訂單 -->
                                     <form action="/delete/{{ order.id }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這筆訂單嗎？');">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">刪除</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
                                     </form>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="8" class="text-center text-muted">目前尚無點餐紀錄</td>
+                                <td colspan="8" class="text-center text-muted">目前尚無任何點餐紀錄</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -122,37 +141,30 @@
         </div>
     </div>
 
-    <!-- 品牌與品項連動的 JavaScript -->
+    <!-- 品牌與品項動態連動 JavaScript -->
     <script>
-        const allItems = [
-            {% for item in menu_items %}
-                { id: "{{ item.id }}", brand: "{{ item.brand }}", name: "{{ item.name }}" },
-            {% endfor %}
-        ];
+        function filterItems() {
+            const selectedBrand = document.getElementById('brandSelect').value;
+            const itemSelect = document.getElementById('itemSelect');
+            const options = itemSelect.options;
 
-        const brandSelect = document.getElementById('brand_select');
-        const itemSelect = document.getElementById('item_id');
+            let firstVisible = true;
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.value === "") continue; // 跳過預設提示選項
 
-        brandSelect.addEventListener('change', function() {
-            const selectedBrand = this.value;
-            itemSelect.innerHTML = '<option value="">-- 請選擇餐點品項 --</option>';
-            
-            if (!selectedBrand) {
-                itemSelect.disabled = true;
-                return;
+                const itemBrand = opt.getAttribute('data-brand');
+                if (itemBrand === selectedBrand) {
+                    opt.style.display = "";
+                    if (firstVisible) {
+                        itemSelect.value = opt.value; // 自動選取該品牌的第一個品項
+                        firstVisible = false;
+                    }
+                } else {
+                    opt.style.display = "none";
+                }
             }
-
-            const filteredItems = allItems.filter(item => item.brand === selectedBrand);
-
-            filteredItems.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.name;
-                itemSelect.appendChild(option);
-            });
-
-            itemSelect.disabled = false;
-        });
+        }
     </script>
 </body>
 </html>
