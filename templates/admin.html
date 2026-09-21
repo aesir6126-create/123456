@@ -3,93 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>品牌與品項管理後台</title>
+    <title>揪團點餐系統</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        /* 針對行動裝置微調間距與表格文字大小 */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            .container {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-light">
-    <div class="container mt-5 mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>⚙️ 品牌與品項管理後台</h2>
-            <a href="/" class="btn btn-outline-primary">🏠 返回點餐首頁</a>
+    <div class="container mt-3 mt-md-5 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">🧋 揪團點餐系統</h2>
+            <a href="/admin" class="btn btn-outline-secondary btn-sm">⚙️ 後台管理</a>
         </div>
 
-        <!-- CSV 匯入與匯出工具列 -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body bg-white">
-                <div class="row align-items-center">
-                    <div class="col-md-6 mb-2 mb-md-0">
-                        <h6 class="text-secondary mb-2">📁 CSV 資料管理</h6>
-                        <a href="/admin/export" class="btn btn-info btn-sm">📥 匯出品牌品項 CSV</a>
-                    </div>
-                    <div class="col-md-6">
-                        <form action="/admin/import" method="POST" enctype="multipart/form-data" class="form-inline justify-content-md-end">
-                            <div class="form-group mr-2 mb-2 mb-md-0">
-                                <input type="file" name="csv_file" accept=".csv" class="form-control-file form-control-sm" required>
-                            </div>
-                            <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('確定要匯入此 CSV 檔案嗎？（重複的品項將會被略過）');">📤 匯入 CSV</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 新增或修改表單 -->
+        <!-- 點餐表單卡片 -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <h5 class="card-title">{% if edit_item %}修改品項資料{% else %}新增品牌與品項{% endif %}</h5>
-                <form action="{% if edit_item %}/admin/update/{{ edit_item.id }}{% else %}/admin/add{% endif %}" method="POST">
+                <h5 class="card-title text-primary mb-3">我要點餐</h5>
+                <form action="/add" method="POST">
                     <div class="form-row">
-                        <div class="form-group col-md-5">
-                            <label for="brand">品牌名稱：</label>
-                            <input type="text" name="brand" id="brand" class="form-control" value="{% if edit_item %}{{ edit_item.brand }}{% endif %}" placeholder="例如：50嵐" required>
+                        <!-- 選擇品牌 -->
+                        <div class="form-group col-12 col-md-3">
+                            <label for="brandSelect">選擇品牌：</label>
+                            <select id="brandSelect" class="form-control" onchange="filterItems()">
+                                <option value="" disabled selected>請選擇品牌</option>
+                                {% for brand in brands %}
+                                <option value="{{ brand }}">{{ brand }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="form-group col-md-5">
-                            <label for="name">品項名稱：</label>
-                            <input type="text" name="name" id="name" class="form-control" value="{% if edit_item %}{{ edit_item.name }}{% endif %}" placeholder="例如：珍珠奶茶" required>
+
+                        <!-- 選擇品項 -->
+                        <div class="form-group col-12 col-md-4">
+                            <label for="itemSelect">選擇品項：</label>
+                            <select id="itemSelect" name="item_id" class="form-control" required>
+                                <option value="" disabled selected>請先選擇品牌</option>
+                                {% for item in menu_items %}
+                                <option value="{{ item.id }}" data-brand="{{ item.brand }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="form-group col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success btn-block">{% if edit_item %}確認修改{% else %}新增品項{% endif %}</button>
+
+                        <!-- 數量 -->
+                        <div class="form-group col-6 col-md-2">
+                            <label for="qty">數量：</label>
+                            <input type="number" class="form-control" id="qty" name="qty" value="1" min="1" required>
+                        </div>
+
+                        <!-- 甜度 -->
+                        <div class="form-group col-6 col-md-3">
+                            <label for="sweetness">甜度：</label>
+                            <select class="form-control" id="sweetness" name="sweetness">
+                                <option value="正常甜">正常甜</option>
+                                <option value="少糖">少糖</option>
+                                <option value="半糖">半糖</option>
+                                <option value="微糖">微糖</option>
+                                <option value="無糖">無糖</option>
+                            </select>
                         </div>
                     </div>
-                    {% if edit_item %}
-                    <a href="/admin" class="btn btn-secondary btn-sm">取消編輯</a>
-                    {% endif %}
+
+                    <div class="form-row">
+                        <!-- 冰塊 -->
+                        <div class="form-group col-12 col-md-4">
+                            <label for="ice">冰塊：</label>
+                            <select class="form-control" id="ice" name="ice">
+                                <option value="正常冰">正常冰</option>
+                                <option value="少冰">少冰</option>
+                                <option value="微冰">微冰</option>
+                                <option value="去冰">去冰</option>
+                                <option value="熱飲">熱飲</option>
+                            </select>
+                        </div>
+
+                        <!-- 備註欄位 -->
+                        <div class="form-group col-12 col-md-6">
+                            <label for="note">備註 / 客製化需求：</label>
+                            <input type="text" class="form-control" id="note" name="note" placeholder="例如：少冰、微糖、不要珍珠">
+                        </div>
+
+                        <!-- 送出按鈕 -->
+                        <div class="form-group col-12 col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-block">加入訂單</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- 現有品項清單列表 -->
+        <!-- 目前所有訂單列表 -->
         <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0">現有菜單列表</h5>
+            <div class="card-header d-flex justify-content-between align-items-center bg-white flex-wrap">
+                <h5 class="mb-2 mb-md-0 text-secondary">📋 目前所有訂單清單</h5>
+                <!-- 清除全部訂單按鈕 -->
+                <form action="/clear" method="POST" class="d-inline" onsubmit="return confirm('確定要清除所有訂單紀錄嗎？');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">🗑️ 清除全部訂單</button>
+                </form>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0 p-md-3">
                 <div class="table-responsive">
-                    <table class="table table-striped mb-0">
+                    <table class="table table-striped table-sm mb-0 text-nowrap">
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th>品牌</th>
                                 <th>品項名稱</th>
+                                <th>數量</th>
+                                <th>甜度 / 冰塊</th>
+                                <th>備註</th>
+                                <th>下單時間</th>
                                 <th class="text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in items %}
+                            {% for order in orders %}
                             <tr>
                                 <td>{{ loop.index }}</td>
-                                <td>{{ item.brand }}</td>
-                                <td>{{ item.name }}</td>
+                                <td>{{ order.brand }}</td>
+                                <td>{{ order.item_name }}</td>
+                                <td>{{ order.qty }}</td>
+                                <td>{{ order.sweetness }} / {{ order.ice }}</td>
+                                <td>{{ order.note if order.note else '-' }}</td>
+                                <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') if order.created_at else '-' }}</td>
                                 <td class="text-right">
-                                    <a href="/admin?edit_id={{ item.id }}" class="btn btn-warning btn-sm">修改</a>
-                                    <form action="/admin/delete/{{ item.id }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這個品項嗎？');">
-                                        <button type="submit" class="btn btn-danger btn-sm">刪除</button>
+                                    <!-- 單筆刪除訂單 -->
+                                    <form action="/delete/{{ order.id }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這筆訂單嗎？');">
+                                        <button type="submit" class="btn btn-danger btn-sm py-0 px-2" style="font-size: 12px;">刪除</button>
                                     </form>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted">目前尚無任何品項資料</td>
+                                <td colspan="8" class="text-center text-muted py-4">目前尚無任何點餐紀錄</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -98,5 +155,31 @@
             </div>
         </div>
     </div>
+
+    <!-- 品牌與品項動態連動 JavaScript -->
+    <script>
+        function filterItems() {
+            const selectedBrand = document.getElementById('brandSelect').value;
+            const itemSelect = document.getElementById('itemSelect');
+            const options = itemSelect.options;
+
+            let firstVisible = true;
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.value === "") continue;
+
+                const itemBrand = opt.getAttribute('data-brand');
+                if (itemBrand === selectedBrand) {
+                    opt.style.display = "";
+                    if (firstVisible) {
+                        itemSelect.value = opt.value;
+                        firstVisible = false;
+                    }
+                } else {
+                    opt.style.display = "none";
+                }
+            }
+        }
+    </script>
 </body>
 </html>
