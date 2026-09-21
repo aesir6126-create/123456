@@ -28,23 +28,13 @@ class OrderRecord(db.Model):
     qty = db.Column(db.Integer, nullable=False)
     sweetness = db.Column(db.String(20), nullable=False)
     ice = db.Column(db.String(20), nullable=False)
+    note = db.Column(db.String(200), nullable=True)  # 新增：備註欄位
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # 自動初始化測試菜單資料
 with app.app_context():
     db.create_all()
-    if MenuItem.query.count() == 0:
-        sample_items = [
-            MenuItem(brand="50嵐", name="茉莉綠茶"),
-            MenuItem(brand="50嵐", name="四季春青茶"),
-            MenuItem(brand="50嵐", name="波霸奶茶"),
-            MenuItem(brand="大苑子", name="愛文芒果冰沙"),
-            MenuItem(brand="大苑子", name="柳橙綠茶"),
-            MenuItem(brand="麻古茶坊", name="芝芝葡萄果粒"),
-            MenuItem(brand="麻古茶坊", name="楊枝甘露")
-        ]
-        db.session.bulk_save_objects(sample_items)
-        db.session.commit()
+    # 如果資料庫沒有 note 欄位，在第一次執行時 SQLAlchemy 建立表格會自動帶入，若舊表格已存在建議到 Supabase 檢查或手動新增 note 欄位 (TEXT)
 
 # 前台：點餐頁面
 @app.route('/')
@@ -74,6 +64,7 @@ def add_to_cart():
     qty = int(request.form.get('qty', 1))
     sweetness = request.form.get('sweetness', '正常甜')
     ice = request.form.get('ice', '正常冰')
+    note = request.form.get('note', '').strip()  # 接收備註內容
     
     selected_item = MenuItem.query.get(item_id)
     
@@ -83,7 +74,8 @@ def add_to_cart():
             item_name=selected_item.name,
             qty=qty,
             sweetness=sweetness,
-            ice=ice
+            ice=ice,
+            note=note  # 存入資料庫
         )
         db.session.add(new_order)
         db.session.commit()
@@ -143,67 +135,51 @@ def admin_delete(id):
     db.session.commit()
     return redirect(url_for('admin_menu'))
 
-# 後台：匯出 CSV 檔 (改為 Big5 編碼，讓 Excel 直接開啟不亂碼)
+# 後台：匯出 CSV 檔 (Big5 編碼)
 @app.route('/admin/export')
 def admin_export_csv():
     items = MenuItem.query.all()
-    
     output = io.StringIO()
     writer = csv.writer(output)
-    
-    # 寫入 CSV 標頭
     writer.writerow(['brand', 'name'])
-    
-    # 寫入各筆資料
     for item in items:
         writer.writerow([item.brand, item.name])
-        
     output.seek(0)
-    
-    # 使用 big5 編碼並加入 errors='ignore'，避免遇到特殊字元報錯
     csv_data = output.getvalue().encode('big5', errors='ignore')
-    
     return Response(
         csv_data,
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=menu_items.csv"}
     )
 
-# 後台：匯入 CSV 檔 (自動偵測編碼：utf-8-sig / big5 / cp950)
+# 後台：匯入 CSV 檔 (自動偵測編碼)
 @app.route('/admin/import', methods=['POST'])
 def admin_import_csv():
     if 'csv_file' not in request.files:
         return redirect(url_for('admin_menu'))
-        
     file = request.files['csv_file']
     if file.filename == '':
         return redirect(url_for('admin_menu'))
-        
     if file:
         try:
             file_bytes = file.read()
             decoded_text = None
-            
-            # 自動嘗試常見的編碼格式
             for enc in ['utf-8-sig', 'big5', 'cp950', 'utf-8']:
                 try:
                     decoded_text = file_bytes.decode(enc)
                     break
                 except UnicodeDecodeError:
                     continue
-            
             if decoded_text:
                 stream = io.StringIO(decoded_text)
                 reader = csv.reader(stream)
-                
-                header = next(reader, None) # 跳過標題列
+                header = next(reader, None)
                 if header:
                     for row in reader:
                         if len(row) >= 2:
                             brand = row[0].strip()
                             name = row[1].strip()
                             if brand and name:
-                                # 檢查是否已經存在相同的品牌與品項，避免重複匯入
                                 existing = MenuItem.query.filter_by(brand=brand, name=name).first()
                                 if not existing:
                                     new_item = MenuItem(brand=brand, name=name)
@@ -211,7 +187,6 @@ def admin_import_csv():
                     db.session.commit()
         except Exception as e:
             print(f"CSV 匯入錯誤: {e}")
-            
     return redirect(url_for('admin_menu'))
 
 if __name__ == '__main__':
