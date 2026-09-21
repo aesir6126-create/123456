@@ -22,7 +22,7 @@
                         <!-- 選擇品牌 -->
                         <div class="form-group col-md-3">
                             <label for="brandSelect">選擇品牌：</label>
-                            id="brandSelect" class="form-control" onchange="filterItems()">
+                            <select id="brandSelect" class="form-control" onchange="filterItems()">
                                 <option value="" disabled selected>請選擇品牌</option>
                                 {% for brand in brands %}
                                 <option value="{{ brand }}">{{ brand }}</option>
